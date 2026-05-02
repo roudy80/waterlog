@@ -33,6 +33,7 @@ function showView(name) {
   if (name === 'dashboard') renderDashboard();
   if (name === 'new-reading') initNewReadingForm();
   if (name === 'export') renderExport();
+  if (name === 'settings') renderSettingsView();
 }
 
 // ── Dashboard ──────────────────────────────────────────────────────────────────
@@ -219,6 +220,8 @@ photoInput.addEventListener('change', async () => {
   photoPreview.style.display = 'block';
   cameraBtn.style.display = 'none';
   removePhotoBtn.style.display = 'block';
+  // Show AI button only if API key is configured
+  document.getElementById('ai-read-row').style.display = getApiKey() ? 'block' : 'none';
 });
 
 removePhotoBtn.addEventListener('click', () => {
@@ -227,6 +230,7 @@ removePhotoBtn.addEventListener('click', () => {
   photoPreview.style.display = 'none';
   cameraBtn.style.display = 'flex';
   removePhotoBtn.style.display = 'none';
+  document.getElementById('ai-read-row').style.display = 'none';
   photoInput.value = '';
 });
 
@@ -387,6 +391,101 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ── Settings ───────────────────────────────────────────────────────────────────
+const API_KEY_STORE = 'waterlog_apikey';
+
+function getApiKey() { return localStorage.getItem(API_KEY_STORE) || ''; }
+
+function renderSettingsView() {
+  const key = getApiKey();
+  const input = document.getElementById('api-key-input');
+  input.value = key ? '••••••••••••••••' : '';
+  document.getElementById('api-key-status').textContent = key
+    ? 'API key saved. AI meter reading is enabled.'
+    : 'No key saved. Enter one above to enable AI reading.';
+}
+
+document.getElementById('save-api-key-btn').addEventListener('click', () => {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val || val.startsWith('•')) { showToast('Enter a real key to save'); return; }
+  localStorage.setItem(API_KEY_STORE, val);
+  renderSettingsView();
+  showToast('API key saved');
+});
+
+document.getElementById('clear-api-key-btn').addEventListener('click', () => {
+  localStorage.removeItem(API_KEY_STORE);
+  document.getElementById('api-key-input').value = '';
+  renderSettingsView();
+  showToast('API key cleared');
+});
+
+// ── AI Meter Reading ────────────────────────────────────────────────────────────
+document.getElementById('ai-read-btn').addEventListener('click', async () => {
+  const key = getApiKey();
+  if (!key) {
+    showToast('Add a Claude API key in Settings first');
+    showView('settings');
+    return;
+  }
+  if (!currentPhoto) { showToast('Take a photo first'); return; }
+
+  const btnText = document.getElementById('ai-btn-text');
+  const spinner = document.getElementById('ai-spinner');
+  btnText.style.display = 'none';
+  spinner.style.display = 'inline';
+  document.getElementById('ai-read-btn').disabled = true;
+
+  try {
+    // Strip the data:image/...;base64, prefix
+    const base64 = currentPhoto.replace(/^data:image\/\w+;base64,/, '');
+    const mediaType = currentPhoto.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 50,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: 'This image shows a water gauge, meter, dial, or measuring instrument. Read the numeric value shown. Reply with ONLY the number — no units, no words, just the number (e.g. 42.3). If there are multiple readings, give the primary/main one. If you truly cannot read a number, reply with just a question mark.' }
+          ]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${response.status}`);
+    }
+
+    const data = await response.json();
+    const result = data.content?.[0]?.text?.trim();
+
+    if (!result || result === '?') {
+      showToast("Couldn't read a number from this photo — enter manually");
+    } else {
+      document.getElementById('reading-value').value = result;
+      showToast(`AI read: ${result}`);
+    }
+  } catch (err) {
+    showToast(`Error: ${err.message}`);
+    console.error('AI read error:', err);
+  } finally {
+    btnText.style.display = 'inline';
+    spinner.style.display = 'none';
+    document.getElementById('ai-read-btn').disabled = false;
+  }
+});
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 renderDashboard();

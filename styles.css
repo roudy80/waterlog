@@ -227,6 +227,22 @@ label textarea { resize: vertical; }
 }
 #remove-photo-btn:hover { background: #fcc; }
 
+.ai-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #8e44ad, #3498db);
+  color: white;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  letter-spacing: 0.02em;
+}
+.ai-btn:hover { opacity: 0.88; }
+.ai-btn:disabled { opacity: 0.5; cursor: wait; }
+#ai-read-row { border-top: 1px solid #eef3f8; }
+
 /* ── Form Footer ──────────────────────────────────────── */
 .form-footer {
   display: flex;

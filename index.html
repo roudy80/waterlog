@@ -24,6 +24,7 @@
     <button class="nav-btn active" data-view="dashboard">Dashboard</button>
     <button class="nav-btn" data-view="new-reading">+ New Reading</button>
     <button class="nav-btn" data-view="export">Export</button>
+    <button class="nav-btn" data-view="settings">&#9881;</button>
   </nav>
 
   <!-- DASHBOARD VIEW -->
@@ -58,6 +59,12 @@
             <span>Take Photo / Upload</span>
           </button>
           <img id="photo-preview" style="display:none" alt="Reading photo">
+          <div id="ai-read-row" style="display:none">
+            <button type="button" id="ai-read-btn" class="ai-btn">
+              <span id="ai-btn-text">&#10024; Read Meter with AI</span>
+              <span id="ai-spinner" style="display:none">&#8987; Reading...</span>
+            </button>
+          </div>
           <button type="button" id="remove-photo-btn" style="display:none">Remove photo</button>
         </div>
       </label>
@@ -115,6 +122,28 @@
       <p>Storage used: <strong id="storage-used">—</strong></p>
       <button id="clear-photos-btn" class="warn-btn full-width">Clear All Photos (keeps readings)</button>
       <button id="clear-all-btn" class="danger-btn full-width">Delete All Data</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS VIEW -->
+  <div id="view-settings" class="view">
+    <div class="form-card">
+      <h2>&#9881; Settings</h2>
+      <p>Add a Claude API key to enable automatic meter reading from photos. The key is stored only in your browser — never sent anywhere except Anthropic's API.</p>
+      <label>Claude API Key
+        <input type="password" id="api-key-input" placeholder="sk-ant-...">
+      </label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button id="save-api-key-btn" class="submit-btn" style="flex:1">Save Key</button>
+        <button id="clear-api-key-btn" class="warn-btn" style="flex:1;margin-top:0">Clear Key</button>
+      </div>
+      <p id="api-key-status" style="margin-top:12px;font-size:0.85rem;color:#888"></p>
+
+      <hr>
+      <h3>How it works</h3>
+      <p>After taking a photo, tap <strong>&#10024; Read Meter with AI</strong>. The photo is sent to Claude (a fast AI model) which reads the number off the gauge, dial, or display and fills it in automatically. Works on analog gauges, digital displays, dipsticks, flow meters — most things with a number on them.</p>
+      <p>Cost: roughly $0.001 per photo read (fractions of a cent).</p>
+      <p>No key? No problem — just type the number in manually.</p>
     </div>
   </div>
 
