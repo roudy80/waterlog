@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>WaterLog — Field Reading Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-content">
+      <h1>&#128167; WaterLog</h1>
+      <p class="tagline">Field Reading Tracker</p>
+    </div>
+    <svg class="wave" viewBox="0 0 1200 60" preserveAspectRatio="none">
+      <path d="M0,30 C200,60 400,0 600,30 C800,60 1000,0 1200,30 L1200,60 L0,60 Z" fill="white"/>
+    </svg>
+  </header>
+
+  <!-- NAV -->
+  <nav>
+    <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+    <button class="nav-btn" data-view="new-reading">+ New Reading</button>
+    <button class="nav-btn" data-view="export">Export</button>
+  </nav>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="view-dashboard" class="view active">
+    <div id="site-cards" class="card-grid"></div>
+    <div id="no-readings" class="empty-state" style="display:none">
+      <div class="empty-icon">&#128167;</div>
+      <p>No readings yet.<br>Tap <strong>+ New Reading</strong> to add your first one.</p>
+    </div>
+  </div>
+
+  <!-- NEW READING VIEW -->
+  <div id="view-new-reading" class="view">
+    <form id="reading-form" class="form-card">
+      <h2>New Reading</h2>
+
+      <label>Site
+        <div class="site-input-row">
+          <select id="site-select">
+            <option value="">— select a site —</option>
+          </select>
+          <button type="button" id="add-site-btn" class="icon-btn" title="Add new site">+</button>
+        </div>
+        <input type="text" id="new-site-name" placeholder="New site name" style="display:none;margin-top:8px">
+      </label>
+
+      <label>Photo
+        <div class="photo-area" id="photo-area">
+          <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
+          <button type="button" id="camera-btn" class="camera-btn">
+            <span class="camera-icon">&#128247;</span>
+            <span>Take Photo / Upload</span>
+          </button>
+          <img id="photo-preview" style="display:none" alt="Reading photo">
+          <button type="button" id="remove-photo-btn" style="display:none">Remove photo</button>
+        </div>
+      </label>
+
+      <label>Reading Value
+        <div class="value-row">
+          <input type="number" id="reading-value" placeholder="0.00" step="any" required>
+          <select id="reading-unit">
+            <option value="ft">ft</option>
+            <option value="in">in</option>
+            <option value="m">m</option>
+            <option value="cm">cm</option>
+            <option value="gal">gal</option>
+            <option value="gpm">gpm</option>
+            <option value="cfs">cfs</option>
+            <option value="mg/L">mg/L</option>
+            <option value="ppm">ppm</option>
+            <option value="pH">pH</option>
+            <option value="°F">°F</option>
+            <option value="custom">custom</option>
+          </select>
+        </div>
+        <input type="text" id="custom-unit" placeholder="Custom unit" style="display:none;margin-top:8px">
+      </label>
+
+      <label>Notes (optional)
+        <textarea id="reading-notes" rows="2" placeholder="Anything unusual?"></textarea>
+      </label>
+
+      <div class="form-footer">
+        <span id="form-time" class="timestamp"></span>
+        <button type="submit" class="submit-btn">Save Reading</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- SITE HISTORY VIEW -->
+  <div id="view-site-history" class="view">
+    <div class="history-header">
+      <button id="back-btn" class="back-btn">&#8592; Back</button>
+      <h2 id="history-site-name"></h2>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- EXPORT VIEW -->
+  <div id="view-export" class="view">
+    <div class="form-card">
+      <h2>Export Data</h2>
+      <p>Download all readings as a CSV file — open in Excel or Google Sheets for your records.</p>
+      <button id="export-csv-btn" class="submit-btn full-width">&#8681; Download CSV</button>
+
+      <hr>
+      <h3>Manage Data</h3>
+      <p>Storage used: <strong id="storage-used">—</strong></p>
+      <button id="clear-photos-btn" class="warn-btn full-width">Clear All Photos (keeps readings)</button>
+      <button id="clear-all-btn" class="danger-btn full-width">Delete All Data</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <!-- LIGHTBOX -->
+  <div id="lightbox" class="lightbox" style="display:none">
+    <img id="lightbox-img" alt="Full size photo">
+    <button id="lightbox-close">&#10005;</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
