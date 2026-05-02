@@ -227,6 +227,49 @@ label textarea { resize: vertical; }
 }
 #remove-photo-btn:hover { background: #fcc; }
 
+.scan-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #1abc9c, #2980b9);
+  color: white;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.scan-btn:hover { opacity: 0.88; }
+.scan-btn:disabled { opacity: 0.5; cursor: wait; }
+#scan-row { border-top: 1px solid #eef3f8; }
+
+.scan-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gray-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 14px 6px;
+}
+.scan-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+.chip {
+  padding: 8px 18px;
+  background: var(--blue-pale);
+  border: 2px solid var(--blue-mid);
+  border-radius: 20px;
+  color: var(--blue-dark);
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.chip:hover { background: var(--blue-mid); color: white; }
+.scan-none { font-size: 0.85rem; color: var(--gray-text); font-style: italic; padding: 0 0 8px; }
+
 .ai-btn {
   width: 100%;
   padding: 13px;

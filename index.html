@@ -59,9 +59,19 @@
             <span>Take Photo / Upload</span>
           </button>
           <img id="photo-preview" style="display:none" alt="Reading photo">
+          <div id="scan-row" style="display:none">
+            <button type="button" id="scan-btn" class="scan-btn">
+              <span id="scan-btn-text">&#128269; Scan for Numbers (Free)</span>
+              <span id="scan-spinner" style="display:none">&#8987; Scanning...</span>
+            </button>
+            <div id="scan-results" style="display:none">
+              <div class="scan-label">Tap a number to use it:</div>
+              <div id="scan-chips" class="scan-chips"></div>
+            </div>
+          </div>
           <div id="ai-read-row" style="display:none">
             <button type="button" id="ai-read-btn" class="ai-btn">
-              <span id="ai-btn-text">&#10024; Read Meter with AI</span>
+              <span id="ai-btn-text">&#10024; Read Meter with AI (Claude)</span>
               <span id="ai-spinner" style="display:none">&#8987; Reading...</span>
             </button>
           </div>
@@ -156,6 +166,7 @@
     <button id="lightbox-close">&#10005;</button>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

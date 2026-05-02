@@ -220,7 +220,9 @@ photoInput.addEventListener('change', async () => {
   photoPreview.style.display = 'block';
   cameraBtn.style.display = 'none';
   removePhotoBtn.style.display = 'block';
-  // Show AI button only if API key is configured
+  // Free scan always available; Claude button only if key is set
+  document.getElementById('scan-row').style.display = 'block';
+  document.getElementById('scan-results').style.display = 'none';
   document.getElementById('ai-read-row').style.display = getApiKey() ? 'block' : 'none';
 });
 
@@ -230,6 +232,8 @@ removePhotoBtn.addEventListener('click', () => {
   photoPreview.style.display = 'none';
   cameraBtn.style.display = 'flex';
   removePhotoBtn.style.display = 'none';
+  document.getElementById('scan-row').style.display = 'none';
+  document.getElementById('scan-results').style.display = 'none';
   document.getElementById('ai-read-row').style.display = 'none';
   photoInput.value = '';
 });
@@ -420,6 +424,86 @@ document.getElementById('clear-api-key-btn').addEventListener('click', () => {
   renderSettingsView();
   showToast('API key cleared');
 });
+
+// ── Free OCR (Tesseract.js) ─────────────────────────────────────────────────────
+document.getElementById('scan-btn').addEventListener('click', async () => {
+  if (!currentPhoto) return;
+
+  const btnText = document.getElementById('scan-btn-text');
+  const spinner = document.getElementById('scan-spinner');
+  const scanBtn = document.getElementById('scan-btn');
+  btnText.style.display = 'none';
+  spinner.style.display = 'inline';
+  scanBtn.disabled = true;
+  document.getElementById('scan-results').style.display = 'none';
+
+  try {
+    // Preprocess: grayscale + scale up for better OCR on small meter digits
+    const processed = await preprocessForOCR(currentPhoto);
+
+    const { data } = await Tesseract.recognize(processed, 'eng', {
+      tessedit_char_whitelist: '0123456789.-',
+      tessedit_pageseg_mode: '11', // sparse text — finds numbers anywhere in image
+    });
+
+    // Pull out all plausible numbers, dedupe, sort descending by length (most specific first)
+    const found = [...new Set((data.text.match(/\d+(?:\.\d+)?/g) || [])
+      .filter(n => n !== '.' && !n.startsWith('.'))
+      .map(n => n.replace(/^0+(\d)/, '$1')) // strip leading zeros
+    )].sort((a, b) => b.length - a.length).slice(0, 8);
+
+    const chipsEl = document.getElementById('scan-chips');
+    if (found.length === 0) {
+      chipsEl.innerHTML = '<span class="scan-none">No numbers detected — try the Claude AI option or enter manually</span>';
+    } else {
+      chipsEl.innerHTML = found.map(n =>
+        `<button type="button" class="chip" onclick="useScannedNumber('${n}')">${n}</button>`
+      ).join('');
+    }
+    document.getElementById('scan-results').style.display = 'block';
+  } catch (err) {
+    showToast('Scan failed — try entering manually');
+    console.error('OCR error:', err);
+  } finally {
+    btnText.style.display = 'inline';
+    spinner.style.display = 'none';
+    scanBtn.disabled = false;
+  }
+});
+
+function useScannedNumber(n) {
+  document.getElementById('reading-value').value = n;
+  document.getElementById('reading-value').focus();
+  showToast(`Value set to ${n}`);
+}
+
+async function preprocessForOCR(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      // Scale up small images so Tesseract can read small digits
+      const scale = Math.max(1, Math.min(3, 1400 / Math.max(img.width, img.height)));
+      const canvas = document.createElement('canvas');
+      canvas.width  = img.width  * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // Boost contrast: convert to grayscale then stretch range
+      const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = id.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        // High-contrast threshold helps Tesseract with printed digits
+        const v = gray > 127 ? 255 : 0;
+        d[i] = d[i+1] = d[i+2] = v;
+      }
+      ctx.putImageData(id, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.src = dataUrl;
+  });
+}
 
 // ── AI Meter Reading ────────────────────────────────────────────────────────────
 document.getElementById('ai-read-btn').addEventListener('click', async () => {
